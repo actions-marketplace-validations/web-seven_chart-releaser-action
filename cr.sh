@@ -44,10 +44,11 @@ main() {
     local repo=
     local charts_repo_url=
     local charts_branch=charts
+    local no_index=0
+    local scan=0
 
     parse_command_line "$@"
 
-    echo "$repo"
     local repo_root
     repo_root=$(git rev-parse --show-toplevel)
     pushd "$repo_root" > /dev/null
@@ -78,7 +79,10 @@ main() {
         done
 
         release_charts
-        update_index
+
+        if [ $no_index = 0 ]; then
+            update_index
+        fi
     else
         echo "Nothing to do. No chart changes detected."
     fi
@@ -146,12 +150,11 @@ parse_command_line() {
             -n|--no-index)
                 if [[ -n "${2:-}" ]]; then
                     no_index=1
-                    shift
                 fi
+                ;;
             -s|--scan)
                 if [[ -n "${2:-}" ]]; then
                     scan=1
-                    shift
                 fi
                 ;;
             *)
@@ -202,25 +205,30 @@ filter_charts() {
         if [[ -f "$file" ]]; then
             echo $chart
         else
-           echo "WARNING: $file is missing, assuming that '$chart' is not a Helm chart. Skipping." 1>&2
+            if [ $scan = 0 ]; then
+                echo "WARNING: $file is missing, assuming that '$chart' is not a Helm chart. Skipping." 1>&2
+            fi
         fi
     done
 }
 
 lookup_changed_charts() {
     local commit="$1"
-
-    local changed_files
-    changed_files=$(git diff --find-renames --name-only "$commit" -- "$charts_dir")
-
-    local fields
-    if [[ "$charts_dir" == '.' ]]; then
-        fields='1'
+    if [ $scan = 1 ]; then
+        git diff --find-renames --name-only "$commit" -- "$charts_dir" | sed 's/\(.*\)\/.*/\1/' | sort | uniq | filter_charts
     else
-        fields='1,2'
-    fi
+        local changed_files
+        changed_files=$(git diff --find-renames --name-only "$commit" -- "$charts_dir")
 
-    cut -d '/' -f "$fields" <<< "$changed_files" | uniq | filter_charts
+        local fields
+        if [[ "$charts_dir" == '.' ]]; then
+            fields='1'
+        else
+            fields='1,2'
+        fi
+
+        cut -d '/' -f "$fields" <<< "$changed_files" | uniq | filter_charts
+    fi
 }
 
 package_chart() {
@@ -242,26 +250,24 @@ update_index() {
 
     cr index -o "$owner" -r "$repo" -c "$charts_repo_url" -t "$CR_TOKEN" -b "https://api.github.com/"
 
-    if [[ -z "$no_index" ]]; then
+    cat .cr-index/index.yaml
 
-        cat .cr-index/index.yaml
+    charts_branch_worktree=$(mktemp -d)
 
-        charts_branch_worktree=$(mktemp -d)
+    git worktree add "$charts_branch_worktree" "$charts_branch"
 
-        git worktree add "$charts_branch_worktree" "$charts_branch"
+    cp --force .cr-index/index.yaml "$charts_branch_worktree/index.yaml"
 
-        cp --force .cr-index/index.yaml "$charts_branch_worktree/index.yaml"
+    pushd "$charts_branch_worktree" > /dev/null
 
-        pushd "$charts_branch_worktree" > /dev/null
+    git add index.yaml
+    git commit --message="Update index.yaml" --signoff
 
-        git add index.yaml
-        git commit --message="Update index.yaml" --signoff
+    local repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
+    git push "$repo_url" "$charts_branch"
 
-        local repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
-        git push "$repo_url" "$charts_branch"
+    git worktree remove "$charts_branch_worktree"
 
-        git worktree remove "$charts_branch_worktree"
-    fi
     popd > /dev/null
 }
 
