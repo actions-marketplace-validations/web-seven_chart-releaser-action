@@ -21,7 +21,6 @@ set -o pipefail
 SCRIPT_DIR=$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}" || realpath "${BASH_SOURCE[0]}")")
 
 main() {
-    echo $INPUT_NO_INDEX
     owner=$(cut -d '/' -f 1 <<< "$GITHUB_REPOSITORY")
     repo=$(cut -d '/' -f 2 <<< "$GITHUB_REPOSITORY")
 
@@ -36,11 +35,11 @@ main() {
         args+=(--charts-repo-url "${INPUT_CHARTS_REPO_URL}")
     fi
 
-    if [[ $INPUT_NO_INDEX = true ]]; then
+    if [ $INPUT_NO_INDEX ]; then
         args+=(-n)
     fi
 
-    if [[ $INPUT_SCAN = true ]]; then
+    if [ $INPUT_SCAN ]; then
         args+=(-s)
     fi
 
