@@ -35,11 +35,11 @@ main() {
         args+=(--charts-repo-url "${INPUT_CHARTS_REPO_URL}")
     fi
 
-    if [[ -n "${INPUT_NO_INDEX:-}" ]]; then
+    if [[ $INPUT_NO_INDEX = true ]]; then
         args+=(-n)
     fi
 
-    if [[ -n "${INPUT_SCAN:-}" ]]; then
+    if [[ $INPUT_SCAN = true ]]; then
         args+=(-s)
     fi
 
