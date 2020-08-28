@@ -32,6 +32,8 @@ Usage: $(basename "$0") <options>
     -u, --charts-repo-url    The GitHub Pages URL to the charts repo (default: https://<owner>.github.io/<repo>)
     -o, --owner              The repo owner
     -r, --repo               The repo name
+    -n, --no-index           Do not generate and do not upload index file to charts repo
+    -s, --scan               Scan charts directories recursively starts from charts directory
 EOF
 }
 
@@ -41,6 +43,7 @@ main() {
     local owner=
     local repo=
     local charts_repo_url=
+    local charts_branch=charts
 
     parse_command_line "$@"
 
@@ -140,6 +143,17 @@ parse_command_line() {
                     exit 1
                 fi
                 ;;
+            -n|--no-index)
+                if [[ -n "${2:-}" ]]; then
+                    no_index=1
+                    shift
+                fi
+            -s|--scan)
+                if [[ -n "${2:-}" ]]; then
+                    scan=1
+                    shift
+                fi
+                ;;
             *)
                 break
                 ;;
@@ -226,22 +240,28 @@ update_index() {
 
     set -x
 
-    cr index -o "$owner" -r "$repo" -c "$charts_repo_url"
+    cr index -o "$owner" -r "$repo" -c "$charts_repo_url" -t "$CR_TOKEN" -b "https://api.github.com/"
 
-    gh_pages_worktree=$(mktemp -d)
+    if [[ -z "$no_index" ]]; then
 
-    git worktree add "$gh_pages_worktree" gh-pages
+        cat .cr-index/index.yaml
 
-    cp --force .cr-index/index.yaml "$gh_pages_worktree/index.yaml"
+        charts_branch_worktree=$(mktemp -d)
 
-    pushd "$gh_pages_worktree" > /dev/null
+        git worktree add "$charts_branch_worktree" "$charts_branch"
 
-    git add index.yaml
-    git commit --message="Update index.yaml" --signoff
+        cp --force .cr-index/index.yaml "$charts_branch_worktree/index.yaml"
 
-    local repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
-    git push "$repo_url" gh-pages
+        pushd "$charts_branch_worktree" > /dev/null
 
+        git add index.yaml
+        git commit --message="Update index.yaml" --signoff
+
+        local repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
+        git push "$repo_url" "$charts_branch"
+
+        git worktree remove "$charts_branch_worktree"
+    fi
     popd > /dev/null
 }
 

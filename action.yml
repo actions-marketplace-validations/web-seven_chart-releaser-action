@@ -1,6 +1,6 @@
-name: "Helm Chart Releaser"
+name: "Helm Chart Releaser 2"
 description: "Host a Helm charts repo on GitHub Pages"
-author: "The Helm authors"
+author: "The Helm authors & Web7"
 branding:
   color: blue
   icon: anchor
@@ -13,6 +13,12 @@ inputs:
   charts_repo_url:
     description: "The GitHub Pages URL to the charts repo (default: https://<owner>.github.io/<repo>)"
     required: true
+  no_index:
+    description: "Do not generate and do not upload index file to charts repo"
+    required: false
+  scan:
+    description: "Scan charts directories recursively starts from charts directory"
+    required: false
 runs:
   using: "node12"
   main: "main.js"
