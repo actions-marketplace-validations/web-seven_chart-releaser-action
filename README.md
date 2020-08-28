@@ -1,4 +1,4 @@
-# *chart-releaser* Action
+# *chart-releaser* Action 2
 
 A GitHub action to turn a GitHub project into a self-hosted Helm chart repo, using [helm/chart-releaser](https://github.com/helm/chart-releaser) CLI tool.
 
@@ -7,7 +7,7 @@ A GitHub action to turn a GitHub project into a self-hosted Helm chart repo, usi
 ### Pre-requisites
 
 1. A GitHub repo containing a directory with your Helm charts (eg: `/charts`)
-1. A GitHub branch called `gh-pages` to store the published charts. See `charts_repo_url` for alternatives
+1. A GitHub branch called `gh-pages` to store the published charts. See `charts_repo_url` for alternatives (Optional, see `no_index`)
 1. Create a workflow `.yml` file in your `.github/workflows` directory. An [example workflow](#example-workflow) is available below. 
   For more information, reference the GitHub Help Documentation for [Creating a workflow file](https://help.github.com/en/articles/configuring-a-workflow#creating-a-workflow-file)
 
@@ -18,13 +18,15 @@ For more information on inputs, see the [API Documentation](https://developer.gi
 - `version`: The chart-releaser version to use (default: v1.0.0)
 - `charts_dir`: The charts directory
 - `charts_repo_url`: The GitHub Pages URL to the charts repo (default: `https://<owner>.github.io/<project>`)
+- `no_index`: Do not generate and do not upload index file to charts repo
+- `scan`: Scan charts directories recursively starts from charts directory
 
 ### Example Workflow
 
 Create a workflow (eg: `.github/workflows/release.yml`):
 
 ```yaml
-name: Release Charts
+name: Release Charts 2
 
 on:
   push:
@@ -45,6 +47,12 @@ jobs:
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.0.0
+        with:
+          version: 'v1.0.0' #Optional
+          charts_dir: '/charts' #Optional
+          charts_repo_url: 'https://<owner>.github.io/<project>' #Optional
+          no_index: false #Optional
+          scan: false #Optional
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 ```
