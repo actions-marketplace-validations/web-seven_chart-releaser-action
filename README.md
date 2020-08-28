@@ -7,11 +7,7 @@ A GitHub action to turn a GitHub project into a self-hosted Helm chart repo, usi
 ### Pre-requisites
 
 1. A GitHub repo containing a directory with your Helm charts (eg: `/charts`)
-1. A GitHub project [Secret](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets#creating-encrypted-secrets) named `CR_TOKEN` with the value of a GitHub [personal access token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line#creating-a-token)
-    * The token must have `repo` scope
-    * The token's user must have write access to the project
-    * To mitigate risk you may wish to limit the token to a single project by creating a [machine user](https://developer.github.com/v3/guides/managing-deploy-keys/#machine-users)
-    * Please note the personal access token is required because of an [Actions bug](https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/m-p/31266/highlight/true#M743), and will hopefully be unnecessary in the future
+1. A GitHub branch called `gh-pages` to store the published charts. See `charts_repo_url` for alternatives
 1. Create a workflow `.yml` file in your `.github/workflows` directory. An [example workflow](#example-workflow) is available below. 
   For more information, reference the GitHub Help Documentation for [Creating a workflow file](https://help.github.com/en/articles/configuring-a-workflow#creating-a-workflow-file)
 
@@ -19,7 +15,7 @@ A GitHub action to turn a GitHub project into a self-hosted Helm chart repo, usi
 
 For more information on inputs, see the [API Documentation](https://developer.github.com/v3/repos/releases/#input)
 
-- `version`: The chart-releaser version to use (default: v1.0.0-beta.1)
+- `version`: The chart-releaser version to use (default: v1.0.0)
 - `charts_dir`: The charts directory
 - `charts_repo_url`: The GitHub Pages URL to the charts repo (default: `https://<owner>.github.io/<project>`)
 
@@ -48,9 +44,9 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.0.0-rc.1
+        uses: helm/chart-releaser-action@v1.0.0
         env:
-          CR_TOKEN: "${{ secrets.CR_TOKEN }}"
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 ```
 
 This uses [@helm/chart-releaser-action](https://www.github.com/helm/chart-releaser-action) to turn your GitHub project into a self-hosted Helm chart repo.
