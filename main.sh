@@ -35,6 +35,14 @@ main() {
         args+=(--charts-repo-url "${INPUT_CHARTS_REPO_URL}")
     fi
 
+    if [[ -n "${INPUT_NO_INDEX:-}" ]]; then
+        args+=(-n)
+    fi
+
+    if [[ -n "${INPUT_SCAN:-}" ]]; then
+        args+=(-s)
+    fi
+
     "$SCRIPT_DIR/cr.sh" "${args[@]}"
 }
 
