@@ -21,7 +21,6 @@ set -o pipefail
 SCRIPT_DIR=$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}" || realpath "${BASH_SOURCE[0]}")")
 
 main() {
-    env >&2
     owner=$(cut -d '/' -f 1 <<< "$GITHUB_REPOSITORY")
     repo=$(cut -d '/' -f 2 <<< "$GITHUB_REPOSITORY")
 
@@ -37,12 +36,14 @@ main() {
     fi
 
     if [[ $INPUT_NO_INDEX = "true" ]]; then
-        args+=(-n)
+        args+=(--no-index)
     fi
 
     if [[ $INPUT_SCAN = "true" ]]; then
-        args+=(-s)
+        args+=(--scan)
     fi
+
+    "$SCRIPT_DIR/cr.sh" "${args[@]}" >&2
 
     "$SCRIPT_DIR/cr.sh" "${args[@]}"
 }
