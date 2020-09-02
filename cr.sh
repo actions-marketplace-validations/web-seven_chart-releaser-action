@@ -148,14 +148,10 @@ parse_command_line() {
                 fi
                 ;;
             -n|--no-index)
-                if [[ -n "${2:-}" ]]; then
                     no_index=1
-                fi
                 ;;
             -s|--scan)
-                if [[ -n "${2:-}" ]]; then
                     scan=1
-                fi
                 ;;
             *)
                 break
