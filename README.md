@@ -2,6 +2,10 @@
 
 A GitHub action to turn a GitHub project into a self-hosted Helm chart repo, using [helm/chart-releaser](https://github.com/helm/chart-releaser) CLI tool.
 
+This is a fork of [helm/chart-releaser-action](https://github.com/helm/chart-releaser-action) with next updates:
+1. Possibility to disable indexation, just create releases. 
+1. Recursive scanning for charts starting from `charts_dir`.
+
 ## Usage
 
 ### Pre-requisites
