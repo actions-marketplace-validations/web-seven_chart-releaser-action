@@ -43,7 +43,7 @@ main() {
         args+=(--scan)
     fi
 
-    "$SCRIPT_DIR/cr.sh" "${args[@]}" >&2
+    echo "$SCRIPT_DIR/cr.sh" "${args[@]}" >&2
 
     "$SCRIPT_DIR/cr.sh" "${args[@]}"
 }
